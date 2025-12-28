@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sovereign Vault</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Sovereign Vault</h1>
+    <p>Military-Grade Client-Side Encryption | Zero-Trust | Offline PWA</p>
+  </header>
+
+  <main>
+    <section class="status-panel">
+      <h2>System Status</h2>
+      <div class="layer-status">
+        <div class="layer active">Encryption Core: Active</div>
+        <div class="layer">KDF Engine: Loading...</div>
+        <div class="layer">Self-Audit: Ready</div>
+        <div class="layer">Privacy Layers: Pending</div>
+      </div>
+    </section>
+
+    <section class="file-panel">
+      <h2>File Encryption / Decryption</h2>
+      <input type="password" id="password" placeholder="Enter Master Password">
+      <input type="file" id="fileInput" multiple>
+      <div class="buttons">
+        <button id="encryptBtn">Encrypt</button>
+        <button id="decryptBtn">Decrypt</button>
+        <button id="auditBtn">Run Self-Audit</button>
+      </div>
+      <div id="logPanel"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 Sovereign Vault — Client-Only Secure PWA</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
