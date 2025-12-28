@@ -1,0 +1,258 @@
+/* =========================================================
+   Sovereign Vault — Global Military-Grade UI
+   Dark • Minimal • High-Security Visual Language
+   ========================================================= */
+
+/* ---------- Root Variables ---------- */
+:root {
+  --bg-main: #070a12;
+  --bg-panel: #0f1424;
+  --bg-layer: #1a2140;
+  --border-main: #1f2644;
+
+  --text-main: #f0f3f8;
+  --text-muted: #8a94b8;
+
+  --accent-primary: #00ffcc;
+  --accent-secondary: #00ccff;
+  --accent-warning: #ffcc00;
+  --accent-danger: #ff3366;
+
+  --glow-primary: 0 0 20px rgba(0,255,204,0.45);
+  --glow-soft: 0 0 12px rgba(0,255,204,0.25);
+
+  --radius-main: 14px;
+  --radius-soft: 10px;
+
+  --transition-fast: 0.25s ease;
+  --transition-main: 0.35s ease;
+}
+
+/* ---------- Global Reset ---------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: "Segoe UI", Roboto, Inter, system-ui, sans-serif;
+  background: radial-gradient(circle at top, #0b1020, var(--bg-main));
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Header ---------- */
+header {
+  padding: 2.5rem 1rem 2rem;
+  text-align: center;
+  background: linear-gradient(180deg, #0f1428, transparent);
+  border-bottom: 1px solid var(--border-main);
+}
+
+header h1 {
+  font-size: 2.6rem;
+  letter-spacing: 3px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  text-shadow: var(--glow-soft);
+}
+
+header p {
+  margin-top: 0.6rem;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  letter-spacing: 0.4px;
+}
+
+/* ---------- Main Layout ---------- */
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: auto;
+  padding: 2.5rem 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+}
+
+/* ---------- Panels ---------- */
+.status-panel,
+.file-panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-main);
+  border-radius: var(--radius-main);
+  padding: 2.2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* ---------- Section Titles ---------- */
+.status-panel h2,
+.file-panel h2 {
+  margin-bottom: 1.4rem;
+  font-size: 1.2rem;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--accent-primary);
+}
+
+/* ---------- Layer Status ---------- */
+.layer-status {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.layer {
+  background: var(--bg-layer);
+  border: 1px solid var(--border-main);
+  border-radius: var(--radius-soft);
+  padding: 0.9rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.6px;
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition-main);
+}
+
+/* Layer scanning effect */
+.layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(0,255,204,0.15),
+    transparent
+  );
+  transform: translateX(-100%);
+}
+
+/* Active Layer */
+.layer.active {
+  color: #08121a;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  box-shadow: var(--glow-primary);
+}
+
+.layer.active::after {
+  animation: scan 1.8s linear infinite;
+}
+
+/* ---------- File Panel ---------- */
+.file-panel h2 {
+  margin-top: 2rem;
+}
+
+.file-panel h2:first-child {
+  margin-top: 0;
+}
+
+/* ---------- Inputs ---------- */
+input[type="password"],
+input[type="file"] {
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  background: #0a0f1f;
+  border: 1px solid var(--border-main);
+  border-radius: var(--radius-soft);
+  color: var(--text-main);
+  font-size: 0.85rem;
+  transition: var(--transition-fast);
+}
+
+input[type="password"]::placeholder {
+  color: var(--text-muted);
+}
+
+input[type="password"]:focus,
+input[type="file"]:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: var(--glow-soft);
+}
+
+/* ---------- Buttons ---------- */
+button {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1.2rem;
+  border: none;
+  border-radius: var(--radius-soft);
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: #08121a;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: var(--transition-main);
+}
+
+button:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: var(--glow-primary);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* ---------- Log Panel ---------- */
+#logPanel {
+  margin-top: 1.8rem;
+  height: 160px;
+  overflow-y: auto;
+  padding: 1rem;
+  background: #080d1a;
+  border: 1px solid var(--border-main);
+  border-radius: var(--radius-soft);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+#logPanel p {
+  margin-bottom: 0.4rem;
+  color: var(--text-muted);
+}
+
+/* ---------- Footer ---------- */
+footer {
+  text-align: center;
+  padding: 1.4rem 1rem;
+  font-size: 0.75rem;
+  color: #5d6588;
+  border-top: 1px solid var(--border-main);
+  background: linear-gradient(0deg, #0f1428, transparent);
+}
+
+/* ---------- Animations ---------- */
+@keyframes scan {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+  header h1 {
+    font-size: 2.1rem;
+  }
+
+  main {
+    padding: 2rem 1.2rem;
+  }
+}
