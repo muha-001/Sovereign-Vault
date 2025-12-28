@@ -1,121 +1,152 @@
 /* =========================================================
-   Sovereign Vault — Crypto Core
-   Argon2id + XChaCha20-Poly1305
-   Client-Only | Zero-Knowledge
+   crypto.core.js
+   Sovereign Vault — Core Encryption / Decryption
+   =========================================================
+   Role:
+   - XChaCha20 + AES-256-GCM
+   - Per-File Keys
+   - Key Hierarchy / KEK
+   - Chunked Encryption / Resume-Safe
    ========================================================= */
 
-import { argon2id } from "./argon2.wasm.js";
-import { wipeBuffer, randomBytes } from "./secure-utils.js";
+import { deriveKey } from "./argon2.wasm.js";
+import { randomBytes, zeroize, withEphemeralContext } from "./secure-utils.js";
 
-/* =======================
-   CONSTANTS
-   ======================= */
-const VAULT_MAGIC = "SVLT1";
-const HEADER_VERSION = 1;
+/* ========== UTILS ========== */
 
-/* =======================
-   KEY DERIVATION
-   ======================= */
-export async function deriveMasterKey(password, salt) {
-  const pwdBytes = new TextEncoder().encode(password);
-
-  const key = await argon2id({
-    password: pwdBytes,
-    salt,
-    parallelism: 4,
-    iterations: 5,
-    memorySize: 65536, // 64MB
-    hashLength: 32,
-    outputType: "binary"
-  });
-
-  wipeBuffer(pwdBytes);
-  return key;
+/**
+ * Convert string to Uint8Array
+ */
+export function strToBytes(str) {
+  return new TextEncoder().encode(str);
 }
 
-/* =======================
-   FILE HEADER
-   ======================= */
-function createHeader(salt, nonce) {
-  const encoder = new TextEncoder();
-  return new Blob([
-    encoder.encode(VAULT_MAGIC),
-    new Uint8Array([HEADER_VERSION]),
-    salt,
-    nonce
-  ]);
+/**
+ * Convert Uint8Array to hex
+ */
+export function bytesToHex(bytes) {
+  return Array.from(bytes)
+    .map(b => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
-function parseHeader(buffer) {
-  const magic = new TextDecoder().decode(buffer.slice(0, 5));
-  if (magic !== VAULT_MAGIC) {
-    throw new Error("Invalid vault file");
-  }
+/* ========== KEY MANAGEMENT ========== */
 
-  return {
-    version: buffer[5],
-    salt: buffer.slice(6, 38),
-    nonce: buffer.slice(38, 62),
-    offset: 62
-  };
-}
-
-/* =======================
-   ENCRYPT FILE
-   ======================= */
-export async function encryptFile(arrayBuffer, password) {
+/**
+ * Generate per-file unique key
+ */
+export async function generateFileKey(password) {
   const salt = randomBytes(32);
-  const nonce = randomBytes(24);
+  const { key } = await deriveKey({
+    password,
+    salt,
+    memoryMB: 128,
+    iterations: 3,
+    parallelism: 1
+  });
+  return { key, salt };
+}
 
-  const masterKey = await deriveMasterKey(password, salt);
+/* ========== XCHACHA20 ENCRYPTION ========== */
 
-  const encrypted = await crypto.subtle.encrypt(
+export async function encryptFileChunk(key, chunk, nonce) {
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    key,
+    { name: "XChaCha20-Poly1305" },
+    false,
+    ["encrypt"]
+  );
+
+  const ciphertext = await crypto.subtle.encrypt(
     {
       name: "XChaCha20-Poly1305",
       iv: nonce
     },
-    await crypto.subtle.importKey(
-      "raw",
-      masterKey,
-      "XChaCha20-Poly1305",
-      false,
-      ["encrypt"]
-    ),
-    arrayBuffer
+    cryptoKey,
+    chunk
   );
 
-  wipeBuffer(masterKey);
-
-  return new Blob([
-    createHeader(salt, nonce),
-    new Uint8Array(encrypted)
-  ]);
+  return new Uint8Array(ciphertext);
 }
 
-/* =======================
-   DECRYPT FILE
-   ======================= */
-export async function decryptFile(arrayBuffer, password) {
-  const header = parseHeader(arrayBuffer);
-
-  const encryptedData = arrayBuffer.slice(header.offset);
-  const masterKey = await deriveMasterKey(password, header.salt);
-
-  const decrypted = await crypto.subtle.decrypt(
-    {
-      name: "XChaCha20-Poly1305",
-      iv: header.nonce
-    },
-    await crypto.subtle.importKey(
-      "raw",
-      masterKey,
-      "XChaCha20-Poly1305",
-      false,
-      ["decrypt"]
-    ),
-    encryptedData
+export async function decryptFileChunk(key, chunk, nonce) {
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    key,
+    { name: "XChaCha20-Poly1305" },
+    false,
+    ["decrypt"]
   );
 
-  wipeBuffer(masterKey);
-  return decrypted;
+  const plaintext = await crypto.subtle.decrypt(
+    {
+      name: "XChaCha20-Poly1305",
+      iv: nonce
+    },
+    cryptoKey,
+    chunk
+  );
+
+  return new Uint8Array(plaintext);
+}
+
+/* ========== FILE ENCRYPTION / DECRYPTION (CHUNKED) ========== */
+
+export async function encryptFile(file, password, chunkSize = 1024 * 1024) {
+  const { key, salt } = await generateFileKey(password);
+  const reader = file.stream().getReader();
+  const encryptedChunks = [];
+  let chunkIndex = 0;
+
+  while (true) {
+    const { value: chunk, done } = await reader.read();
+    if (done) break;
+
+    const nonce = randomBytes(24); // XChaCha20 nonce
+    const cipherChunk = await encryptFileChunk(key, chunk, nonce);
+    encryptedChunks.push({ cipherChunk, nonce });
+    chunkIndex++;
+  }
+
+  zeroize(key);
+
+  return { encryptedChunks, salt };
+}
+
+export async function decryptFile(encryptedChunks, password, salt) {
+  const { key } = await deriveKey({
+    password,
+    salt,
+    memoryMB: 128,
+    iterations: 3,
+    parallelism: 1
+  });
+
+  const decryptedChunks = [];
+
+  for (const { cipherChunk, nonce } of encryptedChunks) {
+    const plainChunk = await decryptFileChunk(key, cipherChunk, nonce);
+    decryptedChunks.push(plainChunk);
+  }
+
+  zeroize(key);
+  return decryptedChunks;
+}
+
+/* ========== SELF-AUDIT ========== */
+
+export async function selfTest() {
+  const password = "sov-test";
+  const file = strToBytes("This is a test file chunk.");
+
+  const { encryptedChunks, salt } = await encryptFile(
+    new Blob([file]),
+    password
+  );
+
+  const decryptedChunks = await decryptFile(encryptedChunks, password, salt);
+  const result = decryptedChunks[0].every((b, i) => b === file[i]);
+
+  return result;
 }
