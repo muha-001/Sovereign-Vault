@@ -3,54 +3,123 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sovereign Vault</title>
+
+<title>Sovereign Vault – Military‑Grade Client‑Only Encryption</title>
+
 <link rel="stylesheet" href="style.css">
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="./manifest.json">
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js');
+  });
+}
+</script>
 </head>
+
 <body>
-  <header>
-    <h1>Sovereign Vault</h1>
-    <p>Military-Grade Client-Side Encryption | Zero-Trust | Offline PWA</p>
-  </header>
 
-  <main>
-    <!-- System Status Panel -->
-    <section class="status-panel">
-      <h2>System Status</h2>
-      <div class="layer-status">
-        <div class="layer">Zero-Trust Architecture</div>
-        <div class="layer">Zero-Knowledge Design</div>
-        <div class="layer">End-to-End Encryption</div>
-        <div class="layer">Client-Side Encryption Only</div>
-        <div class="layer">Key Management</div>
-        <div class="layer">Digital Signatures</div>
-        <div class="layer">Self-Audit Engine</div>
-      </div>
-    </section>
+<header>
+  <h1>Sovereign Vault</h1>
+  <p>Client‑Only | Zero‑Knowledge | 114 Cryptographic Layers</p>
+</header>
 
-    <!-- File Encryption Panel -->
-    <section class="file-panel">
-      <h2>File Encryption</h2>
-      <input type="password" id="passwordEncrypt" placeholder="Enter Master Password">
-      <input type="file" id="fileEncryptInput" multiple>
-      <button id="encryptBtn">Encrypt Selected Files</button>
+<main>
 
-      <h2>File Decryption</h2>
-      <input type="password" id="passwordDecrypt" placeholder="Enter Master Password">
-      <input type="file" id="fileDecryptInput" multiple>
-      <button id="decryptBtn">Decrypt Selected Files</button>
+<!-- ===================== -->
+<!-- 🔐 ENCRYPT FILES -->
+<!-- ===================== -->
+<section class="vault-section encrypt-section">
+  <h2>🔐 Encrypt Files</h2>
 
-      <h2>Self-Audit</h2>
-      <button id="auditBtn">Run Self-Audit</button>
+  <input type="file" id="encryptFileInput" multiple>
 
-      <div id="logPanel"></div>
-    </section>
-  </main>
+  <input type="password" id="encryptPassword" placeholder="Encryption Password">
 
-  <footer>
-    <p>© 2025 Sovereign Vault — Client-Only Secure PWA</p>
-  </footer>
+  <!-- Password Strength -->
+  <div class="password-strength">
+    <label>Password Strength</label>
+    <div class="strength-bar">
+      <div id="strengthFill"></div>
+    </div>
+    <span id="strengthLabel">Waiting...</span>
+  </div>
 
-  <script src="app.js"></script>
+  <button id="encryptBtn">Encrypt Files</button>
+</section>
+
+<!-- ===================== -->
+<!-- 🔓 DECRYPT FILES -->
+<!-- ===================== -->
+<section class="vault-section decrypt-section">
+  <h2>🔓 Decrypt Files</h2>
+
+  <input type="file" id="decryptFileInput" multiple>
+
+  <input type="password" id="decryptPassword" placeholder="Decryption Password">
+
+  <button id="decryptBtn">Decrypt Files</button>
+</section>
+
+<!-- ===================== -->
+<!-- 🔑 PASSWORD GENERATOR -->
+<!-- ===================== -->
+<section class="vault-section password-generator">
+  <h2>🧠 Strong Password Generator</h2>
+
+  <label>Password Length: <span id="lengthValue">16</span></label>
+  <input type="range" id="passwordLength" min="8" max="32" value="16">
+
+  <div class="options">
+    <label><input type="checkbox" id="optLower" checked> Lowercase (a‑z)</label>
+    <label><input type="checkbox" id="optUpper" checked> Uppercase (A‑Z)</label>
+    <label><input type="checkbox" id="optNumbers" checked> Numbers (0‑9)</label>
+    <label><input type="checkbox" id="optSymbols" checked> Symbols (!@#$%)</label>
+  </div>
+
+  <button id="generatePasswordBtn">Generate Password</button>
+
+  <input type="text" id="generatedPassword" readonly>
+
+  <button id="useForEncrypt">Use for Encryption</button>
+  <button id="useForDecrypt">Use for Decryption</button>
+</section>
+
+<!-- ===================== -->
+<!-- 📊 PROGRESS -->
+<!-- ===================== -->
+<section class="vault-section">
+  <h2>📊 Operation Progress</h2>
+  <progress id="progressBar" value="0" max="100"></progress>
+</section>
+
+<!-- ===================== -->
+<!-- 🧬 LAYER STATUS -->
+<!-- ===================== -->
+<section class="vault-section layers">
+  <h2>🧬 Security Layer Status (114 Layers)</h2>
+  <div class="layer-container">
+    <!-- يتم توليد 114 طبقة ديناميكيًا عبر app.js -->
+  </div>
+</section>
+
+<!-- ===================== -->
+<!-- 📜 LOGS -->
+<!-- ===================== -->
+<section class="vault-section logs">
+  <h2>📜 Activity Log</h2>
+  <div id="logPanel"></div>
+  <button id="auditBtn">Run Self‑Audit</button>
+</section>
+
+</main>
+
+<footer>
+  <p>© 2025 Sovereign Vault – No Servers. No Trust. No Recovery.</p>
+</footer>
+
+<script type="module" src="app.js"></script>
+
 </body>
 </html>
